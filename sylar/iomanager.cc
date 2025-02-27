@@ -105,6 +105,7 @@ IOManager::IOManager(size_t threads, bool use_caller, const std::string &name)
     m_epfd = epoll_create(5000);
     SYLAR_ASSERT(m_epfd > 0);
 
+    // 创建pipe，获取m_tickleFds[2]，其中m_tickleFds[0]是管道的读端，m_tickleFds[1]是管道的写端
     int rt = pipe(m_tickleFds);
     SYLAR_ASSERT(!rt);
 
@@ -114,7 +115,10 @@ IOManager::IOManager(size_t threads, bool use_caller, const std::string &name)
     event.events  = EPOLLIN | EPOLLET;
     event.data.fd = m_tickleFds[0];
 
-    // 非阻塞方式，配合边缘触发
+    //非阻塞方式，配合边缘触发（只通知一次便丢弃）
+    //这行代码使用了 fcntl 函数来更改文件描述符的属性，将 m_tickleFds[0] 设置为非阻塞模式（O_NONBLOCK）。
+    //在非阻塞模式下，对该文件描述符的读取操作（read）将不会阻塞，
+    //如果没有数据可读，read 函数会立即返回，而不是等待数据的到来。
     rt = fcntl(m_tickleFds[0], F_SETFL, O_NONBLOCK);
     SYLAR_ASSERT(!rt);
 

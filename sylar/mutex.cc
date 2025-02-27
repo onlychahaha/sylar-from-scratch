@@ -5,6 +5,8 @@
  * @date 2021-06-09
  */
 
+#include <stdexcept>
+
 #include "mutex.h"
 
 namespace sylar {

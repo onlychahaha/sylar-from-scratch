@@ -47,26 +47,37 @@ public:
         return &v;
         //return &GetInstanceX<T, X, N>();
     }
+private:
+    Singleton() = default;
+    ~Singleton() = default;
+    Singleton(const Singleton&) = delete;
+    Singleton& operator=(const Singleton&) = delete;
 };
 
-/**
- * @brief 单例模式智能指针封装类
- * @details T 类型
- *          X 为了创造多个实例对应的Tag
- *          N 同一个Tag创造多个实例索引
- */
-template<class T, class X = void, int N = 0>
-class SingletonPtr {
-public:
-    /**
-     * @brief 返回单例智能指针
-     */
-    static std::shared_ptr<T> GetInstance() {
-        static std::shared_ptr<T> v(new T);
-        return v;
-        //return GetInstancePtr<T, X, N>();
-    }
-};
+// 单例不需要用智能指针
+// /**
+//  * @brief 单例模式智能指针封装类
+//  * @details T 类型
+//  *          X 为了创造多个实例对应的Tag
+//  *          N 同一个Tag创造多个实例索引
+//  */
+// template<class T, class X = void, int N = 0>
+// class SingletonPtr {
+// public:
+//     /**
+//      * @brief 返回单例智能指针
+//      */
+//     static std::shared_ptr<T> GetInstance() {
+//         static std::shared_ptr<T> v(new T);
+//         return v;
+//         //return GetInstancePtr<T, X, N>();
+//     }
+//     private:
+//     SingletonPtr() = default;
+//     ~SingletonPtr() = default;
+//     SingletonPtr(const SingletonPtr&) = delete;
+//     SingletonPtr& operator=(const SingletonPtr&) = delete;
+// };
 
 }
 

@@ -26,8 +26,8 @@ int main(int argc, char *argv[]) {
         return false;
     }
 
-    SYLAR_LOG_INFO(g_logger)<< "exe: " << g_env->getExe();
-    SYLAR_LOG_INFO(g_logger) <<"cwd: " << g_env->getCwd();
+    SYLAR_LOG_INFO(g_logger) << "exe: " << g_env->getExe();
+    SYLAR_LOG_INFO(g_logger) << "cwd: " << g_env->getCwd();
     SYLAR_LOG_INFO(g_logger) << "absoluth path of test: " << g_env->getAbsolutePath("test");
     SYLAR_LOG_INFO(g_logger) << "conf path:" << g_env->getConfigPath();
 

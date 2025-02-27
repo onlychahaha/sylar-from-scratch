@@ -4,11 +4,16 @@
  * @version 0.1
  * @date 2021-06-15
  */
+#include <condition_variable>
+
 #include "scheduler.h"
 #include "macro.h"
 #include "hook.h"
 
 namespace sylar {
+
+// static std::mutex g_tickleMutex;
+// static std::condition_variable g_tickleCond;
 
 static sylar::Logger::ptr g_logger = SYLAR_LOG_NAME("system");
 
@@ -86,10 +91,17 @@ bool Scheduler::stopping() {
     return m_stopping && m_tasks.empty() && m_activeThreadCount == 0;
 }
 
+//具体实现由子类实现io协程调度
 void Scheduler::tickle() { 
     SYLAR_LOG_DEBUG(g_logger) << "ticlke"; 
+    // {
+    //     std::unique_lock<std::mutex> lock(g_tickleMutex);
+    //     //唤醒一个阻塞线程
+    //     g_tickleCond.notify_one();
+    // }
 }
 
+//具体实现由子类实现io协程调度
 void Scheduler::idle() {
     SYLAR_LOG_DEBUG(g_logger) << "idle";
     while (!stopping()) {
@@ -150,7 +162,49 @@ void Scheduler::run() {
     while (true) {
         task.reset();
         bool tickle_me = false; // 是否tickle其他线程进行任务调度
+#if 0
         {
+            std::unique_lock<std::mutex> lock(g_tickleMutex);
+            if(m_tasks.empty() && !stopping()){
+                g_tickleCond.wait(lock);
+            }
+            if(!m_tasks.empty()){
+                auto it = m_tasks.begin();
+                while(it != m_tasks.end()){
+                    if (it->thread != -1 && it->thread != sylar::GetThreadId()) {
+                        // 指定了调度线程，但不是在当前线程上调度，标记一下需要通知其他线程进行调度，然后跳过这个任务，继续下一个
+                        ++it;
+                        tickle_me = true;
+                        continue;
+                    }
+                    // 找到一个未指定线程，或是指定了当前线程的任务
+                    SYLAR_ASSERT(it->fiber || it->cb);
+
+                    // if (it->fiber) {
+                    //     // 任务队列时的协程一定是READY状态，谁会把RUNNING或TERM状态的协程加入调度呢？
+                    //     SYLAR_ASSERT(it->fiber->getState() == Fiber::READY);
+                    // }
+
+                    // [BUG FIX]: hook IO相关的系统调用时，在检测到IO未就绪的情况下，会先添加对应的读写事件，再yield当前协程，等IO就绪后再resume当前协程
+                    // 多线程高并发情境下，有可能发生刚添加事件就被触发的情况，如果此时当前协程还未来得及yield，则这里就有可能出现协程状态仍为RUNNING的情况
+                    // 这里简单地跳过这种情况，以损失一点性能为代价，否则整个协程框架都要大改
+                    if (it->fiber && it->fiber->getState() == Fiber::RUNNING) {
+                        ++it;
+                        continue;
+                    }
+
+                    // 当前调度线程找到一个任务，准备开始调度，将其从任务队列中剔除，活动线程数加1
+                    task = *it;
+                    m_tasks.erase(it++);
+                    ++m_activeThreadCount;
+                    break;
+                }
+                // 当前线程拿完一个任务后，发现任务队列还有剩余，那么tickle一下其他线程
+                tickle_me |= (it != m_tasks.end());
+            }
+        }
+#endif
+        {       
             MutexType::Lock lock(m_mutex);
             auto it = m_tasks.begin();
             // 遍历所有调度任务

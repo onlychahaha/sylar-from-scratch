@@ -15,6 +15,7 @@
 #include <stdint.h>
 #include <atomic>
 #include <list>
+#include <string>
 
 #include "noncopyable.h"
 

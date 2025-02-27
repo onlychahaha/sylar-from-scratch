@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
     SYLAR_LOG_INFO(g_logger) << "main begin";
 
     std::vector<sylar::Thread::ptr> thrs;
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 1; i++) {
         thrs.push_back(sylar::Thread::ptr(
             new sylar::Thread(&test_fiber, "thread_" + std::to_string(i))));
     }

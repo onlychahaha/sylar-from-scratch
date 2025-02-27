@@ -25,6 +25,10 @@ option(BUILD_TEST "ON for complile test" ON)
 find_package(Boost REQUIRED) 
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
+    add_definitions(-DBOOST_ALL_NO_LIB)
+    message("找到了 Boost")
+else()
+    message(FATAL_ERROR "没有找到 Boost")
 endif()
 
 set(LIB_SRC
