@@ -16,6 +16,31 @@
 #include <sys/socket.h>
 #include <vector>
 
+/*
+    包括数据写入：
+    1. 写入固定长度的int8_t,uint8_t,int16_t,uint16_t,int32_t,uint32_t,int64_t,uint64_t
+    2. 写入Varint32,Varint64
+    3. 写入float,double
+    4. 写入std::string(固定长度,Varint64)
+    5. 写入内存块
+    6. 写入文件
+    包括数据读取：
+    1. 读取固定长度的int8_t,uint8_t,int16_t,uint16_t,int32_t,uint32_t,int64_t,uint64_t
+    2. 读取Varint32,Varint64
+    3. 读取float,double
+    4. 读取std::string(固定长度,Varint64)
+    5. 读取内存块
+    6. 读取文件
+    内存块（Node 结构体）管理：
+    1. 内存块的分配和释放
+    2. 内存块的扩容
+    3. 内存块的清空
+    4. 内存块的大小
+    5. 内存块的操作位置
+    分散/聚集 I/O 函数：用于获取可读取和可写入的缓存，并保存成 iovec 数组
+    getReadBuffers getWriteBuffers
+*/
+
 namespace sylar {
 
 /**

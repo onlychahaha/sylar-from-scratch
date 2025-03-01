@@ -275,7 +275,7 @@ private:
 };
 
 /**
- * @brief UnixSocket地址
+ * @brief UnixSocket地址，使用本地文件系统路径作为地址，Unix 域套接字用于在同一台机器上的进程间通信，不涉及网络传输
  */
 class UnixAddress : public Address {
 public:

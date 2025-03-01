@@ -17,6 +17,8 @@
 
 namespace sylar {
 
+//bswap_64, bswap_32, bswap_16,作用是将64位、32位、16位的数据的字节序进行转换
+
 /**
  * @brief 8字节类型的字节序转化
  */
