@@ -156,13 +156,17 @@ void TimerManager::listExpiredCb(std::vector<std::function<void()> >& cbs) {
         return;
     }
 
+    //找到所有已到期的定时器
     Timer::ptr now_timer(new Timer(now_ms));
     auto it = rollover ? m_timers.end() : m_timers.lower_bound(now_timer);
-    while(it != m_timers.end() && (*it)->m_next == now_ms) {
+    while(it != m_timers.end() && (*it)->m_next <= now_ms) {
         ++it;
     }
+    //将已到期的定时器插入到 expired 向量中，并从 m_timers 中删除
     expired.insert(expired.begin(), m_timers.begin(), it);
     m_timers.erase(m_timers.begin(), it);
+
+    //收集回调函数并处理循环定时器 
     cbs.reserve(expired.size());
 
     for(auto& timer : expired) {
@@ -178,6 +182,7 @@ void TimerManager::listExpiredCb(std::vector<std::function<void()> >& cbs) {
 
 void TimerManager::addTimer(Timer::ptr val, RWMutexType::WriteLock& lock) {
     auto it = m_timers.insert(val).first;
+    //set是已经排序好的容器，如果it是begin()，那么说明新插入的定时器是最先执行的，需要唤醒idle协程
     bool at_front = (it == m_timers.begin()) && !m_tickled;
     if(at_front) {
         m_tickled = true;

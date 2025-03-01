@@ -116,7 +116,7 @@ IOManager::IOManager(size_t threads, bool use_caller, const std::string &name)
     event.data.fd = m_tickleFds[0];
 
     //非阻塞方式，配合边缘触发（只通知一次便丢弃）
-    //这行代码使用了 fcntl 函数来更改文件描述符的属性，将 m_tickleFds[0] 设置为非阻塞模式（O_NONBLOCK）。
+    //使用了 fcntl 函数来更改文件描述符的属性，将 m_tickleFds[0] 设置为非阻塞模式（O_NONBLOCK）。
     //在非阻塞模式下，对该文件描述符的读取操作（read）将不会阻塞，
     //如果没有数据可读，read 函数会立即返回，而不是等待数据的到来。
     rt = fcntl(m_tickleFds[0], F_SETFL, O_NONBLOCK);
@@ -158,6 +158,10 @@ int IOManager::addEvent(int fd, Event event, std::function<void()> cb) {
     // 找到fd对应的FdContext，如果不存在，那就分配一个
     FdContext *fd_ctx = nullptr;
     RWMutexType::ReadLock lock(m_mutex);
+    /*
+    确保 fd 对应的 FdContext 存在，
+    并且在需要时调整 m_fdContexts 的大小，以容纳新的文件描述符。
+    */
     if ((int)m_fdContexts.size() > fd) {
         fd_ctx = m_fdContexts[fd];
         lock.unlock();
@@ -180,6 +184,7 @@ int IOManager::addEvent(int fd, Event event, std::function<void()> cb) {
     // 将新的事件加入epoll_wait，使用epoll_event的私有指针存储FdContext的位置
     int op = fd_ctx->events ? EPOLL_CTL_MOD : EPOLL_CTL_ADD;
     epoll_event epevent;
+    //EPOLLET:边缘触发模式（ET）
     epevent.events   = EPOLLET | fd_ctx->events | event;
     epevent.data.ptr = fd_ctx;
 
@@ -195,7 +200,7 @@ int IOManager::addEvent(int fd, Event event, std::function<void()> cb) {
     // 待执行IO事件数加1
     ++m_pendingEventCount;
 
-    // 找到这个fd的event事件对应的EventContext，对其中的scheduler, cb, fiber进行赋值
+    // 找到这个fd的event事件对应的EventContext，对其中的scheduler, cb, fiber赋值，这时候赋值都是空值
     fd_ctx->events                     = (Event)(fd_ctx->events | event);
     FdContext::EventContext &event_ctx = fd_ctx->getEventContext(event);
     SYLAR_ASSERT(!event_ctx.scheduler && !event_ctx.fiber && !event_ctx.cb);
@@ -341,6 +346,7 @@ void IOManager::tickle() {
     if(!hasIdleThreads()) {
         return;
     }
+    //"T"只是为了通知另一端有事件发生，不需要关心里面的内容
     int rt = write(m_tickleFds[1], "T", 1);
     SYLAR_ASSERT(rt == 1);
 }
@@ -390,6 +396,7 @@ void IOManager::idle() {
             } else {
                 next_timeout = MAX_TIMEOUT;
             }
+            //只是超时的话，返回值为0
             rt = epoll_wait(m_epfd, events, MAX_EVNETS, (int)next_timeout);
             if(rt < 0 && errno == EINTR) {
                 continue;
@@ -442,6 +449,20 @@ void IOManager::idle() {
             }
 
             // 剔除已经发生的事件，将剩下的事件重新加入epoll_wait
+            /*
+                fd_ctx->events是这个fd关心的事件，
+             real_events是此次epoll_wait返回的需要处理的事件，~取反后就是没有发生的事件
+            举个例子：
+                假设 fd_ctx->events 为 EPOLLIN | EPOLLOUT（即同时关注读和写事件）。
+                假设 real_events 为 EPOLLIN（即此次 epoll_wait 返回的实际发生的事件是读事件）。
+                那么：
+
+                ~real_events 为 ~EPOLLIN，即 EPOLLOUT。
+                fd_ctx->events & ~real_events 为 (EPOLLIN | EPOLLOUT) & ~EPOLLIN，即 EPOLLOUT。
+
+                因此，left_events 的值为 EPOLLOUT，表示在处理完此次事件后，文件描述符上还剩下写事件未处理
+                left_events表示还需要处理的事件，如果left_events为0，那么就不需要再加入epoll_wait了。
+            */
             int left_events = (fd_ctx->events & ~real_events);
             int op          = left_events ? EPOLL_CTL_MOD : EPOLL_CTL_DEL;
             event.events    = EPOLLET | left_events;

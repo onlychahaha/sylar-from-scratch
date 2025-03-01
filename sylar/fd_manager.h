@@ -91,7 +91,7 @@ private:
 private:
     /// 是否初始化
     bool m_isInit: 1;
-    /// 是否socket
+    /// 是否socket      socket的fd（仅用于接收连接请求）与accept的fd（直接用于数据收发send/recv）是不同的，要区别管理
     bool m_isSocket: 1;
     /// 是否hook非阻塞
     bool m_sysNonblock: 1;

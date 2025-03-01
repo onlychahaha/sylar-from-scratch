@@ -109,7 +109,7 @@ public:
     int addEvent(int fd, Event event, std::function<void()> cb = nullptr);
 
     /**
-     * @brief 删除事件
+     * @brief 删除事件，不触发回调
      * @param[in] fd socket句柄
      * @param[in] event 事件类型
      * @attention 不会触发事件
@@ -118,7 +118,7 @@ public:
     bool delEvent(int fd, Event event);
 
     /**
-     * @brief 取消事件
+     * @brief 取消事件，但会触发回调，再结束
      * @param[in] fd socket句柄
      * @param[in] event 事件类型
      * @attention 如果该事件被注册过回调，那就触发一次回调事件

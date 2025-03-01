@@ -139,7 +139,7 @@ public:
 protected:
 
     /**
-     * @brief 当有新的定时器插入到定时器的首部,执行该函数
+     * @brief 当有新的定时器插入到定时器的首部（即需要先执行的定时器）,执行该函数
      */
     virtual void onTimerInsertedAtFront() = 0;
 
