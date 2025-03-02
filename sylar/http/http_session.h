@@ -17,7 +17,7 @@ namespace sylar {
 namespace http {
 
 /**
- * @brief HTTPSession封装
+ * @brief HTTPSession封装,接受HTTP请求由HttpRequestParser解析,还可以发送HTTP响应
  */
 class HttpSession : public SocketStream {
 public:
@@ -32,7 +32,7 @@ public:
     HttpSession(Socket::ptr sock, bool owner = true);
 
     /**
-     * @brief 接收HTTP请求
+     * @brief 接收HTTP请求,它使用 HttpRequestParser 解析器来解析从套接字读取的数据。
      */
     HttpRequest::ptr recvRequest();
 

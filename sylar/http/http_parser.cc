@@ -218,6 +218,8 @@ HttpRequestParser::HttpRequestParser() {
 }
 
 size_t HttpRequestParser::execute(char *data, size_t len) {
+        // 在这里http_parser_settings s_request_settings提前注册回调
+        // 调用http_parser_execute按提前注册好的回调去解析http请求，这个是nodejs/http-parser的解析库的接口
     size_t nparsed = http_parser_execute(&m_parser, &s_request_settings, data, len);
     if (m_parser.upgrade) {
         //处理新协议，暂时不处理
@@ -352,6 +354,8 @@ HttpResponseParser::HttpResponseParser() {
 }
 
 size_t HttpResponseParser::execute(char *data, size_t len) {
+    // 在这里http_parser_settings s_request_settings提前注册回调
+        // 调用http_parser_execute按提前注册好的回调去解析http响应，这个是nodejs/http-parser的解析库的接口
     size_t nparsed = http_parser_execute(&m_parser, &s_response_settings, data, len);
     if (m_parser.http_errno != 0) {
         SYLAR_LOG_DEBUG(g_logger) << "parse response fail: " << http_errno_name(HTTP_PARSER_ERRNO(&m_parser));

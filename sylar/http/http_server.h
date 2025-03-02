@@ -18,7 +18,8 @@ namespace sylar {
 namespace http {
 
 /**
- * @brief HTTP服务器类
+ * @brief HTTP服务器类，继承自TcpServer，重载handleClient方法，
+ * 将accept后得到的客户端套接字封装成HttpSession结构，以便于接收和发送HTTP消息。
  */
 class HttpServer : public TcpServer {
 public:

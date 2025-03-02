@@ -19,6 +19,38 @@
 #include "../thread.h"
 #include "../util.h"
 
+/*
+    此文件的作用是定义一个灵活的 HTTP 请求处理框架。
+    这个框架包括处理 HTTP 请求的基本接口（Servlet），
+    以及一个用于管理和分发不同 URI 对应的 Servlet 的分发器
+
+    URI 的组成部分
+    一个完整的 URI 由以下几个部分组成：
+
+    协议（Scheme）：指定访问资源所使用的协议，例如 http、https、ftp 等。
+    主机（Host）：指定资源所在的服务器，例如 www.example.com。
+    端口（Port）：指定访问资源所使用的端口号，例如 :80、:443 等。
+    路径（Path）：指定资源在服务器上的位置，例如 /index.html、/api/v1/users 等。
+    查询参数（Query Parameters）：提供额外的参数信息，例如 ?id=123&name=John。
+    片段标识符（Fragment Identifier）：指定资源中的某个部分，例如 #section1。
+
+    不同的 URI 指的是具有不同路径、查询参数或片段标识符的 URI。例如：
+    https://www.example.com/index.html
+    https://www.example.com/about.html
+    https://www.example.com/api/v1/users
+    https://www.example.com/api/v1/users?id=123
+    https://www.example.com/api/v1/users?id=456
+    https://www.example.com/api/v1/users#section1
+    这些 URI 都指向不同的资源或同一资源的不同部分。
+
+    在 HttpServer 中，不同的 URI 可以映射到不同的 Servlet 进行处理。例如：
+
+    /hello 映射到 HelloServlet，返回 "Hello, World!"。
+    /api/* 映射到 ApiServlet，返回 "API Endpoint"。
+    其他所有 URI 映射到 NotFoundServlet，返回 404 页面。
+    通过 ServletDispatch 类，可以根据请求的 URI 分发到对应的 Servlet 进行处理，
+    从而实现对不同 URI 的灵活处理。
+*/
 namespace sylar {
 namespace http {
 

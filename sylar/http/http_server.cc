@@ -26,6 +26,10 @@ void HttpServer::setName(const std::string& v) {
     m_dispatch->setDefault(std::make_shared<NotFoundServlet>(v));
 }
 
+/*
+    这个函数是TcpServer的handleClient函数，io调度主要执行的任务就是这个函数，
+    将accept后得到的客户端套接字封装成HttpSession结构，以便于接收和发送HTTP消息。
+*/
 void HttpServer::handleClient(Socket::ptr client) {
     SYLAR_LOG_DEBUG(g_logger) << "handleClient " << *client;
     HttpSession::ptr session(new HttpSession(client));

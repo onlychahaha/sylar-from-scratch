@@ -73,6 +73,7 @@ void TcpServer::startAccept(Socket::ptr sock) {
         Socket::ptr client = sock->accept();
         if(client) {
             client->setRecvTimeout(m_recvTimeout);
+            //bind(&TcpServer::handleClient,shared_from_this(), client)即handleClient(client)
             m_ioWorker->schedule(std::bind(&TcpServer::handleClient,
                         shared_from_this(), client));
         } else {
@@ -88,6 +89,7 @@ bool TcpServer::start() {
     }
     m_isStop = false;
     for(auto& sock : m_socks) {
+        //bind(&TcpServer::startAccept,shared_from_this(), sock)即startAccept(sock)
         m_acceptWorker->schedule(std::bind(&TcpServer::startAccept,
                     shared_from_this(), sock));
     }
